@@ -903,6 +903,10 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
         public final void run() {
             try {
                 decrementPendingOutboundBytes();
+                if (promise.isCancelled()) {
+                    ReferenceCountUtil.release(msg);
+                    return;
+                }
                 DefaultChannelHandlerContext next = findContext(ctx);
                 if (next == null) {
                     ReferenceCountUtil.release(msg);

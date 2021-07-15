@@ -269,8 +269,8 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel, ChannelFact
             } else {
                 future = channel.connect(remoteAddress, localAddress);
             }
-            future.addListener(new PromiseNotifier<>(connectPromise));
-            //connectPromise.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            connectPromise.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            PromiseNotifier.fuse(future, connectPromise);
         });
     }
 
