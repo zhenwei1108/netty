@@ -426,9 +426,9 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
         if (executor.inEventLoop()) {
             return findAndInvokeBind(localAddress);
         }
+
         ChannelPromise promise  = newPromise();
-        safeExecute(executor, () ->
-                findAndInvokeBind(localAddress).addListener(new PromiseNotifier<>(promise)), promise, null);
+        safeExecute(executor, () -> PromiseNotifier.fuse(findAndInvokeBind(localAddress), promise), promise, null);
         return promise;
     }
 
@@ -444,8 +444,7 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             return findAndInvokeDeregister();
         }
         ChannelPromise promise = newPromise();
-        safeExecute(executor, () ->
-                findAndInvokeDeregister().addListener(new PromiseNotifier<>(promise)), promise, null);
+        safeExecute(executor, () -> PromiseNotifier.fuse(findAndInvokeDeregister(), promise), promise, null);
         return promise;
     }
 
@@ -474,8 +473,8 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             return findAndInvokeConnect(remoteAddress, localAddress);
         }
         ChannelPromise promise = newPromise();
-            safeExecute(executor, () -> findAndInvokeConnect(remoteAddress, localAddress)
-                    .addListener(new PromiseNotifier<>(promise)), promise, null);
+            safeExecute(executor, () ->
+                    PromiseNotifier.fuse(findAndInvokeConnect(remoteAddress, localAddress), promise), promise, null);
 
         return promise;
     }
@@ -509,8 +508,8 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             return findAndInvokeDisconnect();
         }
         ChannelPromise promise = newPromise();
-        safeExecute(executor,
-                () -> findAndInvokeDisconnect().addListener(new PromiseNotifier<>(promise)), promise, null);
+        safeExecute(executor, () ->
+                PromiseNotifier.fuse(findAndInvokeDisconnect(), promise), promise, null);
         return promise;
     }
 
@@ -537,8 +536,8 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             return findAndInvokeClose();
         }
         ChannelPromise promise = newPromise();
-        safeExecute(executor,
-                () -> findAndInvokeClose().addListener(new PromiseNotifier<>(promise)), promise, null);
+        safeExecute(executor, () ->
+                PromiseNotifier.fuse(findAndInvokeClose(), promise), promise, null);
         return promise;
     }
 
@@ -565,8 +564,8 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
             return findAndInvokeRegister();
         }
         ChannelPromise promise = newPromise();
-        safeExecute(executor,
-                () -> findAndInvokeRegister().addListener(new PromiseNotifier<>(promise)), promise, null);
+        safeExecute(executor, () ->
+                PromiseNotifier.fuse(findAndInvokeRegister(), promise), promise, null);
         return promise;
     }
 
@@ -939,7 +938,7 @@ final class DefaultChannelHandlerContext implements ChannelHandlerContext, Resou
         }
 
         protected void write(DefaultChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-            ctx.invokeWrite(msg).addListener(new PromiseNotifier<>(promise));
+            PromiseNotifier.fuse(ctx.invokeWrite(msg), promise);
         }
     }
 

@@ -142,7 +142,7 @@ public final class PendingWriteQueue {
                     Object msg = write.msg;
                     ChannelPromise promise = write.promise;
                     recycle(write, false);
-                    ctx.write(msg).addListener(new PromiseNotifier<>(promise));
+                    PromiseNotifier.fuse(ctx.write(msg), promise);
                     write = next;
                 }
             }
@@ -217,7 +217,10 @@ public final class PendingWriteQueue {
         Object msg = write.msg;
         ChannelPromise promise = write.promise;
         recycle(write, true);
-        return ctx.write(msg).addListener(new PromiseNotifier<>(promise));
+
+        ChannelFuture future = ctx.write(msg);
+        PromiseNotifier.fuse(future, promise);
+        return future;
     }
 
     /**
