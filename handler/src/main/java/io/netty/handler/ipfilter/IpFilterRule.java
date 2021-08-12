@@ -19,6 +19,7 @@ import java.net.InetSocketAddress;
 
 /**
  * Implement this interface to create new rules.
+ * ip过滤，实现黑白名单
  */
 public interface IpFilterRule {
     /**
