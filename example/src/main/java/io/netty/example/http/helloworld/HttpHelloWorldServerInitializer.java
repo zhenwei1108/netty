@@ -36,8 +36,11 @@ public class HttpHelloWorldServerInitializer extends ChannelInitializer<SocketCh
         if (sslCtx != null) {
             p.addLast(sslCtx.newHandler(ch.alloc()));
         }
+        //使用http解码器进行消息处理
         p.addLast(new HttpServerCodec());
+        //入栈处理
         p.addLast(new HttpServerExpectContinueHandler());
+        //自定义处理
         p.addLast(new HttpHelloWorldServerHandler());
     }
 }

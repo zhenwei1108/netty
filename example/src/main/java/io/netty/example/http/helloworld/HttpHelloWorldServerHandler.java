@@ -15,6 +15,14 @@
  */
 package io.netty.example.http.helloworld;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -26,14 +34,6 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-
 public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static final byte[] CONTENT = { 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd' };
 
@@ -42,18 +42,29 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
         ctx.flush();
     }
 
+    /**
+     *
+     * @param ctx           the {@link ChannelHandlerContext} which this {@link SimpleChannelInboundHandler}
+     *                      belongs to
+     * @param msg           the message to handle
+     *
+     * {@link HttpObject} 是一个顶级接口,子接口为:{@link io.netty.handler.codec.http.HttpMessage}
+     *        此处收到的msg实际为{@link io.netty.handler.codec.http.DefaultHttpRequest}
+     *
+     */
     @Override
     public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
 
             boolean keepAlive = HttpUtil.isKeepAlive(req);
+            //构造应答结构
             FullHttpResponse response = new DefaultFullHttpResponse(req.protocolVersion(), OK,
                                                                     Unpooled.wrappedBuffer(CONTENT));
             response.headers()
                     .set(CONTENT_TYPE, TEXT_PLAIN)
                     .setInt(CONTENT_LENGTH, response.content().readableBytes());
-
+            //如果是keep alive,则应答中填入此字段.
             if (keepAlive) {
                 if (!req.protocolVersion().isKeepAliveDefault()) {
                     response.headers().set(CONNECTION, KEEP_ALIVE);
@@ -62,7 +73,7 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
                 // Tell the client we're going to close the connection.
                 response.headers().set(CONNECTION, CLOSE);
             }
-
+            //返回应答
             ChannelFuture f = ctx.write(response);
 
             if (!keepAlive) {
