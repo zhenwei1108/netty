@@ -56,6 +56,13 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
     public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
+            //过滤特定资源
+            if ("delete".equalsIgnoreCase(req.method().toString())){
+                return;
+            }
+            if ("过滤指定uri".equalsIgnoreCase(req.uri())){
+                return;
+            }
 
             boolean keepAlive = HttpUtil.isKeepAlive(req);
             //构造应答结构
