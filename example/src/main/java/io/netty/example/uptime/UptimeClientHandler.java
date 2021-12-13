@@ -45,6 +45,7 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         // Discard received data
     }
 
+    //心跳事件触发
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (!(evt instanceof IdleStateEvent)) {
